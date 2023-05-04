@@ -1,0 +1,41 @@
+import board
+import time
+import digitalio
+import bitbangio
+
+def temp_c(data):
+    temp = data[0] << 8 | data[1]
+    if temp & 0x0001:
+        return float('NaN')  # Fault reading data.
+    temp >>= 2
+    if temp & 0x2000:
+        temp -= 16384  # Sign bit set, take 2's compliment.
+    return temp * 0.25
+
+cs = digitalio.DigitalInOut(board.D4)
+#cs = digitalio.DigitalInOut(board.ESP_CS)
+cs.direction = digitalio.Direction.OUTPUT
+cs.value = True
+spi = bitbangio.SPI(board.SCL, MISO=board.SDA)
+#spi = bitbangio.SPI(board.SCL, MISO=sda_gpio)
+while not spi.try_lock():
+    pass
+temperature = []
+while True:
+    if len(temperature) > 10:
+        temperature.sort()
+        print("sorted", temperature)
+        temperature = temperature[1:-1]
+        print("remove outliers", temperature)
+        display_temp = sum(temperature)/len(temperature)
+        round(display_temp, 1)
+        print(display_temp)
+        time.sleep(1)
+    spi.configure(baudrate=5000000, phase=0, polarity=0)
+    cs.value = False
+    result = bytearray(4)
+    spi.readinto(result)
+    cs.value = True
+    #print(temp_c(result))
+    temperature.append(temp_c(result))
+spi.unlock()

@@ -1,0 +1,18 @@
+import time
+import board
+import digitalio
+
+# Set up the GPIO pin D4 as an output
+led = digitalio.DigitalInOut(board.D3)
+led.direction = digitalio.Direction.OUTPUT
+count = 0
+
+while True:
+    led.value = True  # Set the pin to HIGH (3.3V)
+    print("high")
+    time.sleep(5)     # Wait for 1 second
+
+    led.value = False  # Set the pin to LOW (0V)
+    print("low")
+    time.sleep(5)
+    count += 1
